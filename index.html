@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="styles/style.css">
+	<script type="text/javascript" src="db/db.js"></script>
+	<script type="text/javascript" src="scripts/records.js"></script>
+	<title>Po App</title>
+    </head>
+    <body>
+
+	<div id="record-wrapper">
+	    <div id="record-info">
+		<span id="date" onclick="document.querySelector('input[type=date]').click()" style="flex-grow: 1; user-select: none;"></span>
+		<input type="date" onchange="dateChanged(this.value)" style="visibility: hidden;" />
+		<div>
+		    <span id="sale"></span> | <span id="sacks"></span>
+		</div>
+	    </div>
+	    <div id="records"></div>
+	</div>
+
+	<script type="text/javascript">
+	    function dateChanged(date) {
+		const d = new Date(date);
+		document.getElementById("date").innerText = `${(d.getDate() > 9) ? d.getDate() : '0'+d.getDate()}/${(d.getMonth() > 9) ? d.getMonth()+1 : '0'+(d.getMonth()+1)}`;
+
+		fetchRecords(date);
+	    }
+
+	    var t = setInterval(() => {
+		if (db) {
+		    dateChanged(Date.now());
+		    clearInterval(t);
+		}
+	    }, 50);
+	</script>
+
+	<div id="calc-wrapper">
+	    <div id="costs-inputs">
+		<div>
+		    <input type="number" id="po-cost-input" onchange="this.value = this.value ? this.value : 0; localStorage.setItem('po_cost', this.value)" />
+		    <label>/kg</label>
+		</div>
+		<div>
+		    <input type="number" id="filling-cost-input" onchange="this.value = this.value ? this.value : 0; localStorage.setItem('filling_cost', this.value)" />
+		    <label>/filling</label>
+		</div>
+		<div>
+		    <input type="number" id="sack-cost-input" onchange="this.value = this.value ? this.value : 0; localStorage.setItem('sack_cost', this.value)" />
+		    <label>/sack</label>
+		</div>
+	    </div>
+
+	    <script type="text/javascript">
+		function getCost(name) {
+		    let cost = localStorage.getItem(name);
+
+		    if (!cost) {
+			cost = 0;
+			localStorage.setItem(name, cost);
+		    }
+
+		    return cost;
+		}
+
+		document.getElementById("po-cost-input").value = getCost("po_cost");
+		document.getElementById("filling-cost-input").value = getCost("filling_cost");
+		document.getElementById("sack-cost-input").value = getCost("sack_cost");
+	    </script>
+
+	    <form id="values-inputs">
+		<div>
+		    <div>
+			<label>Weight</label>
+			<input type="number" name="weight" step=".001" style="width: 100%;" required />
+		    </div>
+		    <div>
+			<label>No. of sacks</label>
+			<div id="sacks-inputs">
+			    <input type="number" id="seller-sacks" placeholder="seller's" required />
+			    <input type="number" id="buyer-sacks" placeholder="buyer's" required />
+			</div>
+		    </div>
+		</div>
+		<button type="submit">calculate</button>
+	    </form>
+
+	    <div id="bill-wrapper">
+		<div class="bill-fields">
+		    <div>
+			<span class="field-name">Weight</span>
+			<span id="weight"></span>
+		    </div>
+		    <div>
+			<span class="field-name">Price</span>
+			<span id="price"></span>
+		    </div>
+		    <div>
+			<span class="field-name">Filling</span>
+			<span id="filling"></span>
+		    </div>
+		    <div>
+			<span class="field-name">Sack</span>
+			<span id="sack"></span>
+		    </div>
+		    <div class="highlighted-bill-field">
+			<span class="field-name">Total</span>
+			<span id="total"></span>
+		    </div>
+		</div>
+
+		<form id="save-form">
+		    <input type="number" name="received" placeholder="Received" style="margin: 0 10px; width: 150px; font-size: 15px;" required />
+		    <button type="submit" onclick="billWrapper.style.display = 'none'">save</button>
+		    <button type="reset" onclick="billWrapper.style.display = 'none'">cancle</button>
+		</form>
+	    </div>
+
+	    <script type="text/javascript">
+		const billWrapper = document.getElementById("bill-wrapper");
+		const form = document.getElementById("values-inputs");
+
+		form.addEventListener("submit", e => {
+		    e.preventDefault();
+		    form.elements["buyer-sacks"].blur();
+
+		    const poCost = localStorage.getItem("po_cost");
+		    const fillingCost = localStorage.getItem("filling_cost");
+		    const sackCost = localStorage.getItem("sack_cost");
+
+		    let weight = form.elements["weight"].value;
+		    let sellerSacks = form.elements["seller-sacks"].value;
+		    let buyerSacks = form.elements["buyer-sacks"].value;
+		    let sacks = parseInt(sellerSacks) + parseInt(buyerSacks);
+
+		    let price = parseFloat((weight * poCost).toFixed(3));
+		    let filling = sacks * fillingCost;
+		    let sack = sellerSacks * sackCost;
+		    let total = parseFloat((price + filling + sack).toFixed(3));
+
+		    document.getElementById("weight").innerText = weight+'kg';
+		    document.getElementById("price").innerText = '₹'+price;
+		    document.getElementById("filling").innerText = '₹'+filling;
+		    document.getElementById("sack").innerText = '₹'+sack;
+		    document.getElementById("total").innerText = '₹'+total;
+
+		    billWrapper.style.display = "block";
+		});
+	    </script>
+	</div>
+	
+	<script type="text/javascript" src="scripts/saveform.js"></script>
+
+    </body>
+</html>
