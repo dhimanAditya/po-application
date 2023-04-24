@@ -43,20 +43,23 @@ function showRecords(record) {
 		    <div>
 			<p>${ record.po_cost }/kg &nbsp;|&nbsp; ${ record.filling_cost }/filling &nbsp;|&nbsp; ${ record.sack_cost }/sack</p>
 			<textarea onchange="updateNote(${record.id}, this.value)">${ record.note ? record.note : '' }</textarea>
-			<button onclick="deleteRecord(this.parentNode.parentNode, ${ record.id }, ${ record.weight }, ${ record.sacks })">delete</button>
+			<button onclick="deleteRecord(this.parentNode.parentNode, ${ record.id }, ${ record.received }, ${ record.weight }, ${ record.sacks })">delete</button>
 		    </div>`;
 
     document.getElementById("records").prepend(div);
 
+    let incomeElem = document.getElementById("income");
     let saleElem = document.getElementById("sale");
     let sacksElem = document.getElementById("sacks");
 
-    saleElem.innerText = (parseFloat(saleElem.innerText)+parseFloat(record.weight)) + "kg";
-    sacksElem.innerText = (parseInt(sacksElem.innerText)+parseInt(record.sacks)) + " sacks";
+    incomeElem.innerText = "₹" + (parseInt(incomeElem.innerText.slice(1)) + parseInt(record.received));
+    saleElem.innerText = (parseFloat(saleElem.innerText) + parseFloat(record.weight)) + "kg";
+    sacksElem.innerText = (parseInt(sacksElem.innerText) + parseInt(record.sacks)) + " sacks";
 }
 
 function fetchRecords(date) {
     document.getElementById("records").innerHTML = '';
+    document.getElementById("income").innerText = "₹0";
     document.getElementById("sale").innerText = "0kg";
     document.getElementById("sacks").innerText = "0 sacks";
 
@@ -80,7 +83,7 @@ function fetchRecords(date) {
     }
 }
 
-function deleteRecord(elem, id, weight, sacks) {
+function deleteRecord(elem, id, received, weight, sacks) {
     if (!confirm("Delete this record ?")) return;
 
     const request = db.transaction(OBJECT_STORE, "readwrite")
@@ -88,9 +91,11 @@ function deleteRecord(elem, id, weight, sacks) {
 	.delete(id);
 
     request.onsuccess = () => {
+	let incomeElem = document.getElementById("income");
 	let saleElem = document.getElementById("sale");
 	let sacksElem = document.getElementById("sacks");
 
+	incomeElem.innerText = "₹" + (parseFloat(incomeElem.innerText.slice(1))-received);
 	saleElem.innerText = (parseFloat(saleElem.innerText)-weight)+"kg";
 	sacksElem.innerText = (parseFloat(sacksElem.innerText)-sacks)+" sacks";
 
