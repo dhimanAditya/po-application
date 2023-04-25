@@ -12,6 +12,16 @@ function updateNote(id, value) {
     }
 }
 
+function updateTracker(received, weight, sacks) {
+    let incomeElem = document.getElementById("income");
+    let saleElem = document.getElementById("sale");
+    let sacksElem = document.getElementById("sacks");
+
+    incomeElem.innerText = "₹" + (parseInt(incomeElem.innerText.slice(1)) + parseInt(received));
+    saleElem.innerText = parseFloat((parseFloat(saleElem.innerText) + parseFloat(weight)).toFixed(3))+"kg";
+    sacksElem.innerText = (parseInt(sacksElem.innerText) + parseInt(sacks))+" sacks";
+}
+
 function showRecords(record) {
     let div = document.createElement("div");
     div.innerHTML = `<div class="bill-fields">
@@ -48,13 +58,7 @@ function showRecords(record) {
 
     document.getElementById("records").prepend(div);
 
-    let incomeElem = document.getElementById("income");
-    let saleElem = document.getElementById("sale");
-    let sacksElem = document.getElementById("sacks");
-
-    incomeElem.innerText = "₹" + (parseInt(incomeElem.innerText.slice(1)) + parseInt(record.received));
-    saleElem.innerText = (parseFloat(saleElem.innerText) + parseFloat(record.weight)) + "kg";
-    sacksElem.innerText = (parseInt(sacksElem.innerText) + parseInt(record.sacks)) + " sacks";
+    updateTracker(record.received, record.weight, record.sacks);
 }
 
 function fetchRecords(date) {
@@ -91,13 +95,7 @@ function deleteRecord(elem, id, received, weight, sacks) {
 	.delete(id);
 
     request.onsuccess = () => {
-	let incomeElem = document.getElementById("income");
-	let saleElem = document.getElementById("sale");
-	let sacksElem = document.getElementById("sacks");
-
-	incomeElem.innerText = "₹" + (parseFloat(incomeElem.innerText.slice(1))-received);
-	saleElem.innerText = (parseFloat(saleElem.innerText)-weight)+"kg";
-	sacksElem.innerText = (parseFloat(sacksElem.innerText)-sacks)+" sacks";
+	updateTracker(-received, -weight, -sacks);
 
 	elem.remove();
     }

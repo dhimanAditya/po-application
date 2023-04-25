@@ -37,6 +37,10 @@ input, textarea, button {
     display: flex;
 }
 
+#record-wrapper #record-info div {
+    white-space: nowrap;
+}
+
 #record-wrapper #records {
     height: calc(100% - 34px);
     overflow: scroll;
